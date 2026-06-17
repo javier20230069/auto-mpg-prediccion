@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: auto-mpg-prediccion
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python train_model.py
+    startCommand: gunicorn app:app

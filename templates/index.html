@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prediccion Auto MPG</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="page">
+    <section class="header">
+      <div>
+        <p class="eyebrow">Modelo de regresion desplegado en Flask</p>
+        <h1>Prediccion de rendimiento de gasolina</h1>
+        <p class="intro">
+          Esta pagina usa el dataset Auto MPG. Primero se hizo una seleccion de caracteristicas
+          y despues se entreno un modelo para predecir <strong>mpg</strong>, que significa millas por galon.
+        </p>
+      </div>
+      <div class="metrics">
+        <span>Modelo: {{ feature_info.model }}</span>
+        <span>Metodo: {{ feature_info.feature_selection }}</span>
+        <span>MAE: {{ "%.3f"|format(feature_info.metrics.mae) }}</span>
+        <span>R2: {{ "%.3f"|format(feature_info.metrics.r2) }}</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Caracteristicas seleccionadas</h2>
+        <p>
+          El formulario usa solamente las variables que fueron elegidas por el metodo de seleccion.
+        </p>
+        <ol class="feature-list">
+          {% for feature in feature_info.feature_metadata %}
+            <li>
+              <strong>{{ feature.label }}</strong>
+              <span>{{ feature.help }}</span>
+            </li>
+          {% endfor %}
+        </ol>
+      </aside>
+
+      <section class="panel">
+        <h2>Formulario de prediccion</h2>
+        <form method="post" class="form">
+          {% for feature in feature_info.feature_metadata %}
+            <label>
+              <span>{{ feature.label }}</span>
+              <input
+                type="number"
+                step="any"
+                name="{{ feature.name }}"
+                min="{{ feature.min }}"
+                max="{{ feature.max }}"
+                value="{{ form_values.get(feature.name, '%.2f'|format(feature.mean)) }}"
+                required
+              >
+              <small>Rango aproximado: {{ "%.2f"|format(feature.min) }} a {{ "%.2f"|format(feature.max) }}</small>
+            </label>
+          {% endfor %}
+
+          <button type="submit">Calcular prediccion</button>
+        </form>
+
+        {% if prediction is not none %}
+          <div class="result">
+            <span>Prediccion estimada</span>
+            <strong>{{ "%.2f"|format(prediction) }} mpg</strong>
+            <p>
+              El auto podria recorrer aproximadamente {{ "%.2f"|format(prediction) }}
+              millas por cada galon de gasolina.
+            </p>
+          </div>
+        {% endif %}
+
+        {% if error %}
+          <div class="error">{{ error }}</div>
+        {% endif %}
+      </section>
+    </section>
+
+    <section class="panel ranking-panel">
+      <h2>Ranking de variables</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Variable</th>
+              <th>Puntuacion</th>
+              <th>Seleccionada</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in feature_info.ranking %}
+              <tr>
+                <td>{{ row.feature }}</td>
+                <td>{{ "%.2f"|format(row.score) }}</td>
+                <td>{{ "Si" if row.selected else "No" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
